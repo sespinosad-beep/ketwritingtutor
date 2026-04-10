@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutor KET Writing - Con Ayuda Inteligente</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; padding: 20px; }
+        .container { width: 100%; max-width: 550px; background: white; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; height: 90vh; }
+        .header { background: #2c3e50; color: white; padding: 15px; text-align: center; font-size: 1.2em; font-weight: bold; }
+        #chat-box { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; background: #ffffff; }
+        .msg { padding: 12px 16px; border-radius: 15px; max-width: 85%; font-size: 14px; line-height: 1.5; position: relative; }
+        .ai { background: #e8f1f8; align-self: flex-start; color: #2c3e50; border-left: 4px solid #3498db; }
+        .user { background: #3498db; align-self: flex-end; color: white; }
+        .help-menu { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+        .help-option { background: #fff; border: 1px solid #3498db; color: #3498db; padding: 6px 12px; border-radius: 15px; font-size: 13px; cursor: pointer; transition: 0.2s; }
+        .help-option:hover { background: #3498db; color: white; }
+        .input-area { border-top: 1px solid #eee; padding: 15px; display: flex; gap: 10px; background: #fff; }
+        input { flex: 1; padding: 12px; border: 2px solid #eee; border-radius: 25px; outline: none; }
+        input:focus { border-color: #3498db; }
+        .btn-send { background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: bold; }
+        .btn-help { background: #f39c12; color: white; border: none; padding: 10px 15px; border-radius: 25px; cursor: pointer; font-weight: bold; }
+        .task-box { font-size: 13px; background: #fff3cd; padding: 15px; border-bottom: 2px solid #ffeeba; color: #856404; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">KET Writing Tutor 🤖</div>
+    <div class="task-box">
+        <strong>Tarea:</strong> Responde a Alex. Escribe 25 palabras o más.<br>
+        1. Agradece. 2. Di la película. 3. Sugiere una hora.
+    </div>
+    <div id="chat-box"></div>
+    <div class="input-area">
+        <button class="btn-help" onclick="showHelpMenu()">💡 Ayuda</button>
+        <input type="text" id="user-input" placeholder="Escribe tu frase aquí..." onkeypress="handleKey(event)">
+        <button class="btn-send" onclick="processInput()">Enviar</button>
+    </div>
+</div>
+
+<script>
+    const chatBox = document.getElementById('chat-box');
+    const userInput = document.getElementById('user-input');
+    
+    let step = 0;
+    let studentAnswers = { greeting: "", movie: "", time: "" };
+
+    const tutorScript = [
+        "¡Hola! Primero, vamos a <b>saludar a Alex y agradecer la invitación</b>. ¿Qué frase quieres usar?",
+        "¡Bien! Ahora dinos <b>qué película quieres ver</b>.",
+        "Ya casi está. Ahora <b>propón una hora</b> para quedar el sábado.",
+        "Analizando tu email..."
+    ];
+
+    const helpData = [
+        ["Hi Alex, thanks!", "Dear Alex, thank you.", "Hello! Thanks for the invite.", "Thanks for your email, Alex!", "Hi Alex, that's a great idea!"],
+        ["I want to see Batman.", "I'd like to see a comedy.", "Let's watch a horror movie.", "I prefer action films.", "Can we see the new Disney film?"],
+        ["Can we meet at 6 pm?", "Let's meet at half past five.", "Is 7 o'clock okay for you?", "I can meet you at 5:30.", "Let's meet at the cinema at 8."]
+    ];
+
+    function addMessage(text, sender) {
+        const div = document.createElement('div');
+        div.className = `msg ${sender}`;
+        div.innerHTML = text;
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        return div;
+    }
+
+    function showHelpMenu() {
+        if (step >= 3) return;
+        
+        const menuMsg = addMessage("Aquí tienes 5 opciones. Haz clic en una para usarla:", "ai");
+        const menuDiv = document.createElement('div');
+        menuDiv.className = "help-menu";
+        
+        helpData[step].forEach(phrase => {
+            const btn = document.createElement('button');
+            btn.className = "help-option";
+            btn.innerText = phrase;
+            btn.onclick = () => {
+                userInput.value = phrase;
+                processInput();
+            };
+            menuDiv.appendChild(btn);
+        });
+        menuMsg.appendChild(menuDiv);
+    }
+
+    function processInput() {
+        const val = userInput.value.trim();
+        if (val === "") return;
+
+        addMessage(val, 'user');
+        userInput.value = "";
+
+        if (step === 0) {
+            studentAnswers.greeting = val;
+            step++;
+            setTimeout(() => addMessage(tutorScript[1], 'ai'), 600);
+        } else if (step === 1) {
+            studentAnswers.movie = val;
+            step++;
+            setTimeout(() => addMessage(tutorScript[2], 'ai'), 600);
+        } else if (step === 2) {
+            studentAnswers.time = val;
+            step++;
+            setTimeout(showResult, 1000);
+        }
+    }
+
+    function showResult() {
+        const finalEmail = `${studentAnswers.greeting} ${studentAnswers.movie} ${studentAnswers.time} See you soon!`;
+        const wordCount = finalEmail.split(/\s+/).filter(w => w.length > 0).length;
+        
+        let feedback = `<b>RESULTADO FINAL:</b><br><br><i style="color:#2980b9">"${finalEmail}"</i><br><br>`;
+        feedback += `<b>Palabras:</b> ${wordCount}<br>`;
+        
+        if (wordCount < 25) {
+            feedback += "⚠️ <b>¡Cuidado!</b> Tienes menos de 25 palabras. En el examen KET necesitas escribir un poco más.";
+        } else {
+            feedback += "✅ <b>¡Perfecto!</b> Has superado las 25 palabras.";
+        }
+
+        addMessage(feedback, 'ai');
+        addMessage("¿Quieres probar otra vez? Refresca la página (F5).", 'ai');
+    }
+
+    function handleKey(e) {
+        if (e.key === 'Enter') processInput();
+    }
+
+    window.onload = () => {
+        addMessage(tutorScript[0], 'ai');
+    };
+</script>
+
+</body>
+</html>
